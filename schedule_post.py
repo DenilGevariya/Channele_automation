@@ -1,42 +1,31 @@
 import os
 os.environ["TZ"] = "Asia/Kolkata"
 
-import time
 import pandas as pd
-import schedule
 from datetime import datetime
-from flask import Flask
-from threading import Thread
 from post import send_product
-
-app = Flask(__name__)
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/export?format=csv&gid=0"
 
-def load_and_schedule():
-    schedule.clear()
+def run_scheduler():
+    now_date = datetime.now().strftime("%d-%m-%Y")   # Example: 08-02-2025
+    now_time = datetime.now().strftime("%H:%M")      # Example: 14:05
+
+    print(f"⏱ Checking schedule: {now_date} {now_time}")
+
     df = pd.read_csv(SHEET_CSV_URL)
-    today = datetime.now().strftime("%d-%m-%Y")
 
     for index, row in df.iterrows():
         post_date = str(row["post_date"]).strip()
         post_time = str(row["post_time"]).strip()
 
-        if post_date == today:
-            schedule.every().day.at(post_time).do(send_product, index=index)
-            print(f"✅ Scheduled: {row['product_name']} at {post_time}")
+        # If sheet time matches current time → Send post
+        if post_date == now_date and post_time == now_time:
+            print(f"🚀 Sending post: {row['product_name']} at {post_time}")
+            send_product(index)
+            return  # stop after sending one post for this minute
 
-def scheduler_loop():
-    load_and_schedule()
-    schedule.every(10).seconds.do(load_and_schedule)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-@app.route("/")
-def home():
-    return "🚀 Telegram Auto Posting Bot Running"
+    print("✅ No scheduled post at this time.")
 
 if __name__ == "__main__":
-    Thread(target=scheduler_loop).start()   # Run scheduler in background
-    app.run(host="0.0.0.0", port=10000)     # Open a web port for Render
+    run_scheduler()
