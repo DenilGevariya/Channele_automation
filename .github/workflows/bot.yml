@@ -13,10 +13,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        # actions/checkout@v3 pinned to commit SHA
+        uses: actions/checkout@c85c95e3ebbe0da35e6c1e4c6d14ad0ab2d00199
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        # actions/setup-python@v4 pinned to commit SHA
+        uses: actions/setup-python@65a6907b4953a4779216aac79e2b6fc0f63a2d7d
         with:
           python-version: "3.11"
 
