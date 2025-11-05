@@ -1,27 +1,27 @@
-name: Telegram Auto Post Bot
+# name: Telegram Auto Post Bot
 
-on:
-  schedule:
-    - cron: "*/1 * * * *"   # runs every 1 minute
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron: "*/1 * * * *"   # runs every 1 minute
+#   workflow_dispatch:
 
-jobs:
-  run-bot:
-    runs-on: ubuntu-latest
-    env:
-      TZ: "Asia/Kolkata"
+# jobs:
+#   run-bot:
+#     runs-on: ubuntu-latest
+#     env:
+#       TZ: "Asia/Kolkata"
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@b4ffde63af5d2ccc91cbf2b0012f5aa5ad8ec7d1
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@b4ffde63af5d2ccc91cbf2b0012f5aa5ad8ec7d1
 
-      - name: Set up Python
-        uses: actions/setup-python@3d7d78667d492262c4a7a380e96b0392007f172d
-        with:
-          python-version: "3.11"
+#       - name: Set up Python
+#         uses: actions/setup-python@3d7d78667d492262c4a7a380e96b0392007f172d
+#         with:
+#           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+#       - name: Install dependencies
+#         run: pip install -r requirements.txt
 
-      - name: Run scheduler
-        run: python schedule_post.py
+#       - name: Run scheduler
+#         run: python schedule_post.py
