@@ -5,7 +5,11 @@ import time
 import pandas as pd
 import schedule
 from datetime import datetime
+from flask import Flask
+from threading import Thread
 from post import send_product
+
+app = Flask(__name__)
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/export?format=csv&gid=0"
 
@@ -22,13 +26,17 @@ def load_and_schedule():
             schedule.every().day.at(post_time).do(send_product, index=index)
             print(f"✅ Scheduled: {row['product_name']} at {post_time}")
 
-load_and_schedule()
+def scheduler_loop():
+    load_and_schedule()
+    schedule.every(10).seconds.do(load_and_schedule)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-# refresh schedule every 10 sec
-schedule.every(10).seconds.do(load_and_schedule)
+@app.route("/")
+def home():
+    return "🚀 Telegram Auto Posting Bot Running"
 
-print("🚀 Bot is Running on Render 24x7...")
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if __name__ == "__main__":
+    Thread(target=scheduler_loop).start()   # Run scheduler in background
+    app.run(host="0.0.0.0", port=10000)     # Open a web port for Render
