@@ -2,7 +2,7 @@ name: Telegram Auto Post Bot
 
 on:
   schedule:
-    - cron: "*/1 * * * *"
+    - cron: "*/1 * * * *"   # runs every 1 minute
   workflow_dispatch:
 
 jobs:
@@ -13,10 +13,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde63af5d2ccc91cbf2b0012f5aa5ad8ec7d1
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@3d7d78667d492262c4a7a380e96b0392007f172d
         with:
           python-version: "3.11"
 
