@@ -12,15 +12,15 @@ jobs:
       TZ: "Asia/Kolkata"
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
           python-version: "3.11"
 
-      - name: Install deps
+      - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Run scheduler
