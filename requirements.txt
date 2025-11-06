@@ -1,4 +1,6 @@
 pandas
-pandas
 requests
 schedule
+gspread
+google-auth
+python-telegram-bot

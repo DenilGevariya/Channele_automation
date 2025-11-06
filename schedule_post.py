@@ -1,31 +1,74 @@
-import os
-os.environ["TZ"] = "Asia/Kolkata"
-
 import pandas as pd
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from post import send_product
+import gspread
+from google.oauth2.service_account import Credentials
 
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/export?format=csv&gid=0"
+SHEET_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/edit#gid=0"
+
+# Google Sheets Auth
+creds = Credentials.from_service_account_file(
+    "service_account.json",
+    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
+client = gspread.authorize(creds)
+sheet = client.open_by_url(SHEET_URL).sheet1
+
+
+def clean_time(t):
+    try:
+        return datetime.strptime(str(t).strip(), "%H:%M").strftime("%H:%M")
+    except:
+        try:
+            return datetime.strptime(str(t).strip(), "%I:%M %p").strftime("%H:%M")
+        except:
+            try:
+                return datetime.strptime(str(t).strip(), "%H:%M:%S").strftime("%H:%M")
+            except:
+                return str(t).strip()
+
 
 def run_scheduler():
-    now_date = datetime.now().strftime("%d-%m-%Y")   # Example: 08-02-2025
-    now_time = datetime.now().strftime("%H:%M")      # Example: 14:05
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    now_date = now.strftime("%d-%m-%Y")
 
-    print(f"⏱ Checking schedule: {now_date} {now_time}")
+    data = sheet.get_all_records()
 
-    df = pd.read_csv(SHEET_CSV_URL)
-
-    for index, row in df.iterrows():
+    for index, row in enumerate(data):
         post_date = str(row["post_date"]).strip()
-        post_time = str(row["post_time"]).strip()
+        post_time = clean_time(row["post_time"])
+        posted = str(row.get("posted", "")).strip()
 
-        # If sheet time matches current time → Send post
-        if post_date == now_date and post_time == now_time:
-            print(f"🚀 Sending post: {row['product_name']} at {post_time}")
+        # Skip already posted rows
+        if posted == "✅":
+            continue
+
+        # Skip if date does not match
+        if post_date != now_date:
+            continue
+
+        # Convert scheduled time to datetime with timezone
+        scheduled_time = datetime.strptime(
+            f"{post_date} {post_time}", "%d-%m-%Y %H:%M"
+        ).replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+
+        # Calculate minute difference
+        diff = abs((now - scheduled_time).total_seconds()) / 60
+
+        # ✅ Allowed posting window = 40 minutes
+        if diff <= 40:
+            print(f"🚀 Posting: {row['product_name']} (Scheduled {post_time}, Now {now.strftime('%H:%M')})")
             send_product(index)
-            return  # stop after sending one post for this minute
 
-    print("✅ No scheduled post at this time.")
+            # ✅ Mark posted in sheet
+            posted_col = sheet.find("posted").col
+            sheet.update_cell(index + 2, posted_col, "✅")
+            print("✅ Marked as posted in sheet")
+            return
+
+    print(f"⏱ Checked at {now.strftime('%H:%M')} — No post needed this minute.")
+
 
 if __name__ == "__main__":
     run_scheduler()
