@@ -54,10 +54,10 @@ def run_scheduler():
         ).replace(tzinfo=ZoneInfo("Asia/Kolkata"))
 
         # Calculate minute difference
-        diff = abs((now - scheduled_time).total_seconds()) / 60
+        diff = (now - scheduled_time).total_seconds() / 60
 
         # ✅ Allowed posting window = 40 minutes
-        if diff <= 40:
+        if 0 <= diff <= 40:
             print(f"🚀 Posting: {row['product_name']} (Scheduled {post_time}, Now {now.strftime('%H:%M')})")
             send_product(index)
 

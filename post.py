@@ -35,7 +35,7 @@ Connect with Us Directly on WhatsApp:
 https://wa.me/+919586346349
 
 Join Our Telegram Channel for Daily Updates:
-https://t.me/+t8ZbFaGZV8M4NTN
+https://t.me/hirparaonlinehub
 
 Join Our WhatsApp Community for Daily Updates:
 https://chat.whatsapp.com/LiUFoJC2iBYBKqWjRHSiBb?mode=ems_wa_t
