@@ -24,13 +24,15 @@ def send_product(index):
     product_name = df.loc[index, "product_name"]
     product_price = df.loc[index, "product_price"]
 
-    # Collect up to 3 images
+    # Collect image links safely (skip empty or NaN)
     image_links = []
     for col in ["image_1", "image_2", "image_3"]:
-        if col in df.columns and str(df.loc[index, col]).strip():
-            image_links.append(convert_drive_link(df.loc[index, col]))
+        if col in df.columns:
+            val = str(df.loc[index, col]).strip()
+            if val and val.lower() != "nan":
+                image_links.append(convert_drive_link(val))
 
-    # Message Caption
+    # Caption Text
     caption = f"""
 *{product_name}*
 
@@ -49,7 +51,16 @@ https://chat.whatsapp.com/LiUFoJC2iBYBKqWjRHSiBb?mode=ems_wa_t
 *Tushar Hirpara* - +91 79903 75596
 """.strip()
 
-    # If only one image → sendPhoto (more stable)
+    # ✅ CASE 1: No images → Send text only
+    if len(image_links) == 0:
+        requests.post(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+            data={"chat_id": CHANNEL, "text": caption, "parse_mode": "Markdown"}
+        )
+        print(f"✅ Sent (text only): {product_name}")
+        return
+
+    # ✅ CASE 2: One image → sendPhoto
     if len(image_links) == 1:
         requests.post(
             f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto",
@@ -59,29 +70,25 @@ https://chat.whatsapp.com/LiUFoJC2iBYBKqWjRHSiBb?mode=ems_wa_t
         print(f"✅ Sent (1 image): {product_name}")
         return
 
-    # If multiple images → sendMediaGroup
+    # ✅ CASE 3: Multi-images → sendMediaGroup
     files = {}
     media = []
 
     for i, url in enumerate(image_links):
-        image_bytes = requests.get(url).content
-        file_name = f"image{i}.jpg"
-        files[file_name] = (file_name, image_bytes, "image/jpeg")
+        img_data = requests.get(url).content
+        fname = f"image{i}.jpg"
+        files[fname] = (fname, img_data, "image/jpeg")
         media.append({
             "type": "photo",
-            "media": f"attach://{file_name}",
+            "media": f"attach://{fname}",
             "caption": caption if i == 0 else "",
             "parse_mode": "Markdown"
         })
 
-    # Convert files dict to proper 'files' list
-    files_for_request = [(name, data) for name, data in files.items()]
-
-    response = requests.post(
+    requests.post(
         f"https://api.telegram.org/bot{BOT_TOKEN}/sendMediaGroup",
         data={"chat_id": CHANNEL, "media": json.dumps(media)},
-        files=files_for_request
+        files=[(name, data) for name, data in files.items()]
     )
 
-    print("📨 Telegram Response:", response.status_code, response.text)
     print(f"✅ Sent ({len(image_links)} images): {product_name}")
