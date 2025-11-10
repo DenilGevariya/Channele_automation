@@ -2,14 +2,15 @@ import requests
 import pandas as pd
 import os
 os.environ["TZ"] = "Asia/Kolkata"
-# === CONFIG ===
-BOT_TOKEN = "8284958888:AAFrNeQ7FRY9tNzyMV5B3npn9DneCDsBOhs"
-CHANNEL = "@HirparaOnlineHub"
+
+BOT_TOKEN = "8284958888:AAFrNeQ7FRY9tNzyMV5B3npn9DneCDsBOhs"  # replace yours
+CHANNELS = [
+    "@producttestupdates"
+]  # Add more channels like "@mychannel2"
+
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/export?format=csv&gid=0"
-# === END CONFIG ===
 
 
-# Convert Google Drive Preview Link → Direct Download Link
 def convert_drive_link(url):
     if "drive.google.com" in url and "/d/" in url:
         file_id = url.split("/d/")[1].split("/")[0]
@@ -22,37 +23,48 @@ def send_product(index):
 
     product_name = df.loc[index, "product_name"]
     product_price = df.loc[index, "product_price"]
-    raw_url = df.loc[index, "image_url"]
 
-    image_url = convert_drive_link(raw_url)
+    image_links = []
+    for col in ["image_1", "image_2", "image_3"]:
+        if col in df.columns and str(df.loc[index, col]).strip():
+            image_links.append(convert_drive_link(df.loc[index, col]))
 
     caption = f"""
 *{product_name}*
 
-✅ Ready Stock   Price - {product_price}/-
+✅ Ready Stock  Price - {product_price}/-
 
 Connect with Us Directly on WhatsApp:
 https://wa.me/+919586346349
 
-Join Our Telegram Channel for Daily Updates:
-https://t.me/hirparaonlinehub
+Join Our Telegram Channel:
+https://t.me/+t8ZbFaGZV8M4NTN
 
-Join Our WhatsApp Community for Daily Updates:
+Join Our WhatsApp Community:
 https://chat.whatsapp.com/LiUFoJC2iBYBKqWjRHSiBb?mode=ems_wa_t
 
 *Hardik Hirpara* - +91 70162 55268  
 *Tushar Hirpara* - +91 79903 75596
-    """
+""".strip()
 
-    response = requests.post(
-        f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto",
-        data={"chat_id": CHANNEL, "caption": caption, "parse_mode": "Markdown"},
-        files={"photo": requests.get(image_url).content}
-    )
+    for CH in CHANNELS:
+        files = []
+        media = []
 
-    print("Sent:", product_name, "| Status:", response.status_code, response.text)
+        for i, url in enumerate(image_links):
+            img_data = requests.get(url).content
+            files.append(("media", (f"image{i}.jpg", img_data, "image/jpeg")))
+            media.append({
+                "type": "photo",
+                "media": f"attach://image{i}.jpg",
+                "caption": caption if i == 0 else "",
+                "parse_mode": "Markdown"
+            })
 
+        requests.post(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMediaGroup",
+            data={"chat_id": CH, "media": str(media).replace("'", '"')},
+            files=files
+        )
 
-# Test manually
-if __name__ == "__main__":
-    send_product(0)
+    print(f"✅ Sent: {product_name}")
