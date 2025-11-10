@@ -20,7 +20,6 @@ def send_product(index):
     product_name = df.loc[index, "product_name"]
     product_price = df.loc[index, "product_price"]
 
-    # Collect up to 3 images
     image_links = []
     for col in ["image_1", "image_2", "image_3"]:
         if col in df.columns and str(df.loc[index, col]).strip():
@@ -44,25 +43,37 @@ https://chat.whatsapp.com/LiUFoJC2iBYBKqWjRHSiBb?mode=ems_wa_t
 *Tushar Hirpara* - +91 79903 75596
 """.strip()
 
-    # Prepare media group
-    files = []
+    # If only one image → use sendPhoto (more reliable)
+    if len(image_links) == 1:
+        requests.post(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto",
+            data={"chat_id": CHANNEL, "caption": caption, "parse_mode": "Markdown"},
+            files={"photo": requests.get(image_links[0]).content}
+        )
+        print("✅ Sent (single image):", product_name)
+        return
+
+    # Otherwise → sendMediaGroup
+    files = {}
     media = []
 
     for i, url in enumerate(image_links):
-        img_data = requests.get(url).content
-        files.append(("media", (f"image{i}.jpg", img_data, "image/jpeg")))
+        img = requests.get(url).content
+        file_name = f"image{i}.jpg"
+        files[file_name] = (file_name, img, "image/jpeg")
         media.append({
             "type": "photo",
-            "media": f"attach://image{i}.jpg",
+            "media": f"attach://{file_name}",
             "caption": caption if i == 0 else "",
             "parse_mode": "Markdown"
         })
 
-    # Send media group
+    files_for_request = [(name, data) for name, data in files.items()]
+
     requests.post(
         f"https://api.telegram.org/bot{BOT_TOKEN}/sendMediaGroup",
-        data={"chat_id": CHANNEL, "media": str(media).replace("'", '"')},
-        files=files
+        data={"chat_id": CHANNEL, "media": json.dumps(media)},
+        files=files_for_request
     )
 
-    print(f"✅ Sent: {product_name}")
+    print("✅ Sent (multi image):", product_name)
