@@ -2,7 +2,7 @@ name: Telegram Auto Post Bot
 
 on:
   schedule:
-  - cron: "*/30 * * * *"  
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: "Asia/Kolkata"
+      SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}   # ✅ SECRET AVAILABLE IN PYTHON
 
     steps:
       - name: Checkout code
@@ -19,12 +20,6 @@ jobs:
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
           python-version: "3.11"
-
-      - name: Create service account key file
-        run: |
-          echo "$SERVICE_ACCOUNT_JSON" > service_account.json
-        env:
-          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
 
       - name: Install dependencies
         run: pip install -r requirements.txt
