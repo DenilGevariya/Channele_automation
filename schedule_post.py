@@ -7,7 +7,6 @@ from google.oauth2.service_account import Credentials
 
 SHEET_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/edit#gid=0"
 
-# Google Sheets Auth
 creds = Credentials.from_service_account_file(
     "service_account.json",
     scopes=["https://www.googleapis.com/auth/spreadsheets"]
@@ -17,57 +16,46 @@ sheet = client.open_by_url(SHEET_URL).sheet1
 
 
 def clean_time(t):
-    try:
-        return datetime.strptime(str(t).strip(), "%H:%M").strftime("%H:%M")
-    except:
+    for fmt in ("%H:%M", "%I:%M %p", "%H:%M:%S"):
         try:
-            return datetime.strptime(str(t).strip(), "%I:%M %p").strftime("%H:%M")
+            return datetime.strptime(str(t).strip(), fmt).strftime("%H:%M")
         except:
-            try:
-                return datetime.strptime(str(t).strip(), "%H:%M:%S").strftime("%H:%M")
-            except:
-                return str(t).strip()
+            pass
+    return str(t).strip()
 
 
 def run_scheduler():
     now = datetime.now(ZoneInfo("Asia/Kolkata"))
-    now_date = now.strftime("%d-%m-%Y")
+    today = now.strftime("%d-%m-%Y")
 
-    data = sheet.get_all_records()
+    df = pd.DataFrame(sheet.get_all_records())
 
-    for index, row in enumerate(data):
-        post_date = str(row["post_date"]).strip()
-        post_time = clean_time(row["post_time"])
-        posted = str(row.get("posted", "")).strip()
+    posts_to_send = []
 
-        # Skip already posted rows
-        if posted == "✅":
+    for index, row in df.iterrows():
+        if str(row.get("posted", "")).strip() == "✅":
             continue
 
-        # Skip if date does not match
-        if post_date != now_date:
+        if str(row["post_date"]).strip() != today:
             continue
 
-        # Convert scheduled time to datetime with timezone
-        scheduled_time = datetime.strptime(
-            f"{post_date} {post_time}", "%d-%m-%Y %H:%M"
-        ).replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+        scheduled_time_str = clean_time(row["post_time"])
+        scheduled_time = datetime.strptime(f"{today} {scheduled_time_str}", "%d-%m-%Y %H:%M")
+        scheduled_time = scheduled_time.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
 
-        # Calculate minute difference
         diff = (now - scheduled_time).total_seconds() / 60
 
-        # ✅ Allowed posting window = 40 minutes
         if 0 <= diff <= 40:
-            print(f"🚀 Posting: {row['product_name']} (Scheduled {post_time}, Now {now.strftime('%H:%M')})")
-            send_product(index)
+            posts_to_send.append(index)
 
-            # ✅ Mark posted in sheet
-            posted_col = sheet.find("posted").col
-            sheet.update_cell(index + 2, posted_col, "✅")
-            print("✅ Marked as posted in sheet")
-            return
-
-    print(f"⏱ Checked at {now.strftime('%H:%M')} — No post needed this minute.")
+    if posts_to_send:
+        posted_col = sheet.find("posted").col
+        for i in posts_to_send:
+            send_product(i)
+            sheet.update_cell(i + 2, posted_col, "✅")
+        print("✅ Completed batch post.")
+    else:
+        print(f"No posts scheduled right now ({now.strftime('%H:%M')}).")
 
 
 if __name__ == "__main__":
