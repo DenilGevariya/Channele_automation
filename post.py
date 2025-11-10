@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 
 BOT_TOKEN = "8284958888:AAFrNeQ7FRY9tNzyMV5B3npn9DneCDsBOhs"   # replace with your bot token
-CHANNEL = "@HirparaOnlineHub"   # replace with your channel username
+CHANNEL = "@producttestupdates"   # replace with your channel username
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/export?format=csv&gid=0"
 
