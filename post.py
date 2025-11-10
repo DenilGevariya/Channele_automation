@@ -4,7 +4,7 @@ import json
 
 # ================= CONFIG =================
 BOT_TOKEN = "8284958888:AAFrNeQ7FRY9tNzyMV5B3npn9DneCDsBOhs"   # <-- PUT YOUR BOT TOKEN
-CHANNEL = "@producttestupdates"  # <-- PUT YOUR CHANNEL USERNAME
+CHANNEL = "@HirparaOnlineHub"  # <-- PUT YOUR CHANNEL USERNAME
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/export?format=csv&gid=0"
 # ==========================================
 
