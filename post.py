@@ -1,12 +1,8 @@
 import requests
 import pandas as pd
-import os
-os.environ["TZ"] = "Asia/Kolkata"
 
-BOT_TOKEN = "8284958888:AAFrNeQ7FRY9tNzyMV5B3npn9DneCDsBOhs"  # replace yours
-CHANNELS = [
-    "@producttestupdates"
-]  # Add more channels like "@mychannel2"
+BOT_TOKEN = "8284958888:AAFrNeQ7FRY9tNzyMV5B3npn9DneCDsBOhs"   # replace with your bot token
+CHANNEL = "@producttestupdates"   # replace with your channel username
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/12Ed5V6MtxAX4YYew7Ba3mAcZyM83DpVyjin8OIcnWEU/export?format=csv&gid=0"
 
@@ -24,6 +20,7 @@ def send_product(index):
     product_name = df.loc[index, "product_name"]
     product_price = df.loc[index, "product_price"]
 
+    # Collect up to 3 images
     image_links = []
     for col in ["image_1", "image_2", "image_3"]:
         if col in df.columns and str(df.loc[index, col]).strip():
@@ -47,24 +44,25 @@ https://chat.whatsapp.com/LiUFoJC2iBYBKqWjRHSiBb?mode=ems_wa_t
 *Tushar Hirpara* - +91 79903 75596
 """.strip()
 
-    for CH in CHANNELS:
-        files = []
-        media = []
+    # Prepare media group
+    files = []
+    media = []
 
-        for i, url in enumerate(image_links):
-            img_data = requests.get(url).content
-            files.append(("media", (f"image{i}.jpg", img_data, "image/jpeg")))
-            media.append({
-                "type": "photo",
-                "media": f"attach://image{i}.jpg",
-                "caption": caption if i == 0 else "",
-                "parse_mode": "Markdown"
-            })
+    for i, url in enumerate(image_links):
+        img_data = requests.get(url).content
+        files.append(("media", (f"image{i}.jpg", img_data, "image/jpeg")))
+        media.append({
+            "type": "photo",
+            "media": f"attach://image{i}.jpg",
+            "caption": caption if i == 0 else "",
+            "parse_mode": "Markdown"
+        })
 
-        requests.post(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMediaGroup",
-            data={"chat_id": CH, "media": str(media).replace("'", '"')},
-            files=files
-        )
+    # Send media group
+    requests.post(
+        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMediaGroup",
+        data={"chat_id": CHANNEL, "media": str(media).replace("'", '"')},
+        files=files
+    )
 
     print(f"✅ Sent: {product_name}")
