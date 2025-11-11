@@ -23,12 +23,16 @@ sheet = client.open_by_url(SHEET_URL).sheet1
 
 def clean_time(t):
     t = str(t).strip()
-    for fmt in ("%H:%M", "%I:%M %p", "%H:%M:%S"):
+    for fmt in ("%H:%M", "%H:%M:%S", "%I:%M %p", "%I:%M%p"):
         try:
             return datetime.strptime(t, fmt).strftime("%H:%M")
         except:
             pass
-    return t  # fallback if already correct
+    # Fix "9:00" → "09:00"
+    parts = t.split(":")
+    if len(parts) == 2:
+        return f"{parts[0].zfill(2)}:{parts[1].zfill(2)}"
+    return t
 
 
 def run_scheduler():
