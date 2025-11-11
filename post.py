@@ -42,7 +42,7 @@ Connect with Us Directly on WhatsApp:
 https://wa.me/+919586346349
 
 Join Our Telegram Channel:
-https://t.me/+t8ZbFaGZV8M4NTN
+t.me/HirparaOnlineHub
 
 Join Our WhatsApp Community:
 https://chat.whatsapp.com/LiUFoJC2iBYBKqWjRHSiBb?mode=ems_wa_t
