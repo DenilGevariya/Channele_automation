@@ -33,13 +33,13 @@ def send_product(index):
                 image_links.append(convert_drive_link(val))
 
     # Caption Text
-price_line = ""
+    price_line = ""
 
-# Show price only if it exists
-if str(product_price).strip() != "" and str(product_price).lower() != "nan":
-    price_line = f"✅ Ready Stock  Price - {product_price}/-\n"
+    # Show price only if it exists
+    if str(product_price).strip() != "" and str(product_price).lower() != "nan":
+        price_line = f"✅ Ready Stock  Price - {product_price}/-\n"
 
-caption = f"""
+    caption = f"""
 *{product_name}*
 
 {price_line}
@@ -55,7 +55,6 @@ https://chat.whatsapp.com/LiUFoJC2iBYBKqWjRHSiBb?mode=ems_wa_t
 *Hardik Hirpara* - +91 70162 55268  
 *Tushar Hirpara* - +91 79903 75596
 """.strip()
-
     # ✅ CASE 1: No images → Send text only
     if len(image_links) == 0:
         requests.post(
