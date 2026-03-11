@@ -33,11 +33,16 @@ def send_product(index):
                 image_links.append(convert_drive_link(val))
 
     # Caption Text
-    caption = f"""
+price_line = ""
+
+# Show price only if it exists
+if str(product_price).strip() != "" and str(product_price).lower() != "nan":
+    price_line = f"✅ Ready Stock  Price - {product_price}/-\n"
+
+caption = f"""
 *{product_name}*
 
-✅ Ready Stock  Price - {product_price}/-
-
+{price_line}
 Connect with Us Directly on WhatsApp:
 https://wa.me/+919586346349
 
